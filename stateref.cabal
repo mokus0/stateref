@@ -1,0 +1,16 @@
+name:                   stateref
+version:                0.001
+stability:              experimental
+
+cabal-version:          >= 1.2
+build-type:             Simple
+
+author:                 James Cook,,, <your email here>
+maintainer:             James Cook,,, <your email here>
+
+description:            I'm too lame to describe my project
+
+Library
+  hs-source-dirs:       src
+  exposed-modules:      
+  build-depends:        base >= 3
