@@ -5,18 +5,20 @@
 {-# LANGUAGE 
     MultiParamTypeClasses,
     FunctionalDependencies,
-    FlexibleInstances
+    FlexibleInstances,
+    FlexibleContexts
   #-}
 
 module Data.StateRef (
         module Data.StateRef,
         
-        IORef, STRef, TVar
+        IORef, MVar, STRef, TVar, TMVar
         ) where
 
 import Control.Monad
 
 import Data.IORef
+import Control.Concurrent.MVar
 
 import Control.Monad.ST
 import Data.STRef
@@ -34,6 +36,8 @@ class Monad m => WriteRef sr m a | sr -> a where
 class Monad m => ReadRef sr m a | sr -> a where
         readRef :: sr -> m a
 
+-- consider whether there needs to be something along the lines of
+-- 'atomicModifyIORef' and/or 'modifyMVar'
 class (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef sr m a | sr -> a where
         modifyRef :: sr -> (a -> a) -> m ()
         modifyRef ref f = do
@@ -42,10 +46,20 @@ class (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef sr m a | sr -> a w
                 writeRef ref x'
                 return ()
 
+class Monad m => TakeMRef sr m a | sr -> a where
+	takeMRef :: sr -> m a
+class Monad m => PutMRef sr m a | sr -> a where
+	putMRef :: sr -> a -> m ()
+
 class (NewRef sr m a)
        => DefaultStateRef sr m a | m a -> sr where
         newRef' :: a -> m sr
         newRef' = newRef
+
+class (NewRef sr m (Maybe a))
+       => DefaultMRef sr m a | m a -> sr where
+	newMRef' :: Maybe a -> m sr
+	newMRef' = newRef
 
 readRef' :: (DefaultStateRef sr m a, ReadRef sr m a) => sr -> m a
 readRef' = readRef
@@ -102,6 +116,39 @@ instance WriteRef (TVar a) IO a where
 instance ModifyRef (TVar a) IO a where
         modifyRef ref f         = atomically (modifyRef ref f)
 
+
+instance DefaultMRef (TMVar a) STM a
+instance NewRef (TMVar a) STM (Maybe a) where
+	newRef Nothing = newEmptyTMVar
+	newRef (Just x) = newTMVar x
+instance ReadRef (TMVar a) STM (Maybe a) where
+	readRef tmv = fmap Just (readTMVar tmv) `orElse` return Nothing
+instance TakeMRef (TMVar a) STM a where
+	takeMRef = takeTMVar
+instance PutMRef (TMVar a) STM a where
+	putMRef = putTMVar
+
+instance NewRef (TMVar a) IO (Maybe a) where
+	newRef Nothing = newEmptyTMVarIO
+	newRef (Just x) = newTMVarIO x
+instance ReadRef (TMVar a) IO (Maybe a) where
+	readRef = atomically . readRef
+instance TakeMRef (TMVar a) IO a where
+	takeMRef = atomically . takeMRef
+instance PutMRef (TMVar a) IO a where
+	putMRef tmv = atomically . putMRef tmv
+
+instance DefaultMRef (MVar a) IO a
+instance NewRef (MVar a) IO (Maybe a) where
+	newRef Nothing = newEmptyMVar
+	newRef (Just x) = newMVar x
+instance TakeMRef (MVar a) IO a where
+	takeMRef = takeMVar
+instance PutMRef (MVar a) IO a where
+	putMRef = putMVar
+
+-- this probably should not actually be defined, unless Ptr supports a finalizer.
+-- consider changing to use ForeignPtr/???
 instance Storable a => NewRef (Ptr a) IO a where
         newRef val = do
                 ptr <- malloc
