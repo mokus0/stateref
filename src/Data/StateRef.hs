@@ -12,7 +12,8 @@
 module Data.StateRef (
         module Data.StateRef,
         
-        IORef, MVar, STRef, TVar, TMVar
+        -- these don't really need to be re-exported to be used, do they?
+--        IORef, MVar, STRef, TVar, TMVar
         ) where
 
 import Control.Monad
@@ -46,20 +47,42 @@ class (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef sr m a | sr -> a w
                 writeRef ref x'
                 return ()
 
+class Monad m => NewMRef sr m a | sr -> a where
+        newMRef :: a -> m sr
+        newEmptyMRef :: m sr
 class Monad m => TakeMRef sr m a | sr -> a where
 	takeMRef :: sr -> m a
 class Monad m => PutMRef sr m a | sr -> a where
 	putMRef :: sr -> a -> m ()
 
+-- consider removing the methods from all "Default" classes?
+-- the sole real purpose for the classes' existence is as a
+-- carrier for their fundeps.
 class (NewRef sr m a)
        => DefaultStateRef sr m a | m a -> sr where
         newRef' :: a -> m sr
         newRef' = newRef
 
-class (NewRef sr m (Maybe a))
+--
+-- in the absence of type families, it'd be nice to be able to say 
+-- something like:
+--
+-- type StateRef m a = 
+--         ( DefaultStateRef sr m a
+--         , ReadRef sr m a
+--         , WriteRef sr m a
+--         ) => sr
+--
+-- this would ease the transition to type families later, assuming
+-- they catch on.
+--
+
+class (NewMRef sr m a)
        => DefaultMRef sr m a | m a -> sr where
-	newMRef' :: Maybe a -> m sr
-	newMRef' = newRef
+	newMRef' :: a -> m sr
+	newMRef' = newMRef
+	newEmptyMRef' :: m sr
+	newEmptyMRef' = newEmptyMRef
 
 readRef' :: (DefaultStateRef sr m a, ReadRef sr m a) => sr -> m a
 readRef' = readRef
@@ -105,19 +128,43 @@ instance ReadRef (TVar a) STM a where
         readRef = readTVar
 instance WriteRef (TVar a) STM a where
         writeRef = writeTVar
-instance ModifyRef (TVar a) STM a where
+instance ModifyRef (TVar a) STM a
+instance TakeMRef (TVar (Maybe a)) STM a where
+        takeMRef ref = do
+                x <- readRef ref
+                case x of
+                        Nothing -> retry
+                        Just x -> do
+                                writeRef ref Nothing
+                                return x
+instance PutMRef (TVar (Maybe a)) STM a where
+        putMRef ref val = do
+                x <- readRef ref
+                case x of
+                        Nothing -> writeRef ref (Just val)
+                        Just x -> retry
 
 instance NewRef (TVar a) IO a where
-        newRef                  = newTVarIO
+        newRef = newTVarIO
 instance ReadRef (TVar a) IO a where
-        readRef ref             = atomically (readTVar ref)
+        readRef = atomically . readRef
 instance WriteRef (TVar a) IO a where
-        writeRef ref val        = atomically (writeTVar ref val)
+        writeRef ref = atomically . writeRef ref
 instance ModifyRef (TVar a) IO a where
-        modifyRef ref f         = atomically (modifyRef ref f)
+        modifyRef ref = atomically . modifyRef ref
 
+instance NewMRef (TVar (Maybe a)) IO a where
+        newMRef = newRef . Just
+        newEmptyMRef = newRef Nothing
+instance TakeMRef (TVar (Maybe a)) IO a where
+        takeMRef = atomically . takeMRef
+instance PutMRef (TVar (Maybe a)) IO a where
+        putMRef ref = atomically . putMRef ref
 
 instance DefaultMRef (TMVar a) STM a
+instance NewMRef (TMVar a) STM a where
+        newMRef = newTMVar
+        newEmptyMRef = newEmptyTMVar
 instance NewRef (TMVar a) STM (Maybe a) where
 	newRef Nothing = newEmptyTMVar
 	newRef (Just x) = newTMVar x
@@ -128,6 +175,9 @@ instance TakeMRef (TMVar a) STM a where
 instance PutMRef (TMVar a) STM a where
 	putMRef = putTMVar
 
+instance NewMRef (TMVar a) IO a where
+        newMRef = newTMVarIO
+        newEmptyMRef = newEmptyTMVarIO
 instance NewRef (TMVar a) IO (Maybe a) where
 	newRef Nothing = newEmptyTMVarIO
 	newRef (Just x) = newTMVarIO x
@@ -139,6 +189,9 @@ instance PutMRef (TMVar a) IO a where
 	putMRef tmv = atomically . putMRef tmv
 
 instance DefaultMRef (MVar a) IO a
+instance NewMRef (MVar a) IO a where
+        newMRef = newMVar
+        newEmptyMRef = newEmptyMVar
 instance NewRef (MVar a) IO (Maybe a) where
 	newRef Nothing = newEmptyMVar
 	newRef (Just x) = newMVar x
@@ -148,7 +201,7 @@ instance PutMRef (MVar a) IO a where
 	putMRef = putMVar
 
 -- this probably should not actually be defined, unless Ptr supports a finalizer.
--- consider changing to use ForeignPtr/???
+-- Probably should change to use ForeignPtr
 instance Storable a => NewRef (Ptr a) IO a where
         newRef val = do
                 ptr <- malloc
