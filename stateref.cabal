@@ -1,5 +1,5 @@
 name:                   stateref
-version:                0.1
+version:                0.2
 stability:              experimental
 
 cabal-version:          >= 1.2
@@ -9,9 +9,12 @@ author:                 James Cook <mokus@deepbondi.net>
 maintainer:             James Cook <mokus@deepbondi.net>
 
 description:            A type-class generalizing the read/write/modify
-			operations for stateful variables
+                        operations for stateful variables
 
 Library
   hs-source-dirs:       src
   exposed-modules:      Data.StateRef
+                        Data.StateRef.Instances
+                        Data.MRef
+                        Data.MRef.Instances
   build-depends:        base >= 3, stm
