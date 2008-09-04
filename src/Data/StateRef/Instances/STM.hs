@@ -3,6 +3,7 @@
  -      (c) 2008 Cook, J. MR  SSD, Inc.
  -}
 {-# LANGUAGE
+        CPP,
         MultiParamTypeClasses,
         FlexibleInstances
   #-}
@@ -10,7 +11,9 @@
 module Data.StateRef.Instances.STM
         ( STM
         , TVar
+#ifdef useTMVar
         , TMVar
+#endif
         
         , atomically
         ) where
@@ -39,6 +42,7 @@ instance WriteRef (TVar a) IO a where
 instance ModifyRef (TVar a) IO a where
         modifyRef ref = atomically . modifyRef ref
 
+#ifdef useTMVar
 -- TMVar in STM monad
 instance NewRef (TMVar a) STM (Maybe a) where
 	newRef Nothing = newEmptyTMVar
@@ -52,3 +56,4 @@ instance NewRef (TMVar a) IO (Maybe a) where
 	newRef (Just x) = newTMVarIO x
 instance ReadRef (TMVar a) IO (Maybe a) where
 	readRef = atomically . readRef
+#endif

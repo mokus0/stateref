@@ -3,13 +3,16 @@
  -      (c) 2008 Cook, J. MR  SSD, Inc.
  -}
 {-# LANGUAGE
+        CPP,
         MultiParamTypeClasses,
         FlexibleInstances
   #-}
 
 module Data.MRef.Instances.STM
         ( STM
+#ifdef useTMVar
         , TMVar
+#endif
         , TVar
         
         , atomically
@@ -21,6 +24,7 @@ import Data.StateRef.Instances.STM ()
 
 import Control.Concurrent.STM
 
+#ifdef useTMVar
 --TMVar in STM monad
 instance DefaultMRef (TMVar a) STM a
 instance NewMRef (TMVar a) STM a where
@@ -41,9 +45,14 @@ instance TakeMRef (TMVar a) IO a where
         takeMRef = atomically . takeMRef
 instance PutMRef (TMVar a) IO a where
         putMRef ref = atomically . putMRef ref
+#endif
 
 -- incidental instances, which may occasionally be handy in a pinch
--- TVars containing "Maybe" values in STM monad
+-- TVars containing "Maybe" values in STM monad.
+-- Also use as default if TMVar isn't available.
+#ifndef useTMVar
+instance DefaultMRef (TVar (Maybe a)) STM a
+#endif
 instance NewMRef (TVar (Maybe a)) STM a where
         newMRef = newRef . Just
         newEmptyMRef = newRef Nothing
