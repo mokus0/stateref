@@ -11,10 +11,23 @@ maintainer:             James Cook <mokus@deepbondi.net>
 description:            A type-class generalizing the read/write/modify
                         operations for stateful variables
 
+Flag useSTM
+  Description:          Include instances for STM types
+  Default:              True
+
 Library
   hs-source-dirs:       src
   exposed-modules:      Data.StateRef
+                        Data.StateRef.Classes
                         Data.StateRef.Instances
                         Data.MRef
+                        Data.MRef.Classes
                         Data.MRef.Instances
-  build-depends:        base >= 3, stm
+  if flag(useSTM)
+    exposed-modules:    Data.StateRef.Instances.STM
+                        Data.MRef.Instances.STM
+    cpp-options:        -DuseSTM
+    
+  build-depends:        base >= 3
+  if flag(useSTM)
+    build-depends:      stm
