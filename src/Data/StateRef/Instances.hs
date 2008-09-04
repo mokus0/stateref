@@ -8,7 +8,19 @@
         FlexibleInstances
   #-}
 
-module Data.StateRef.Instances where
+module Data.StateRef.Instances
+        ( IORef
+        , MVar
+        
+        , STRef
+        , ST
+        , RealWorld
+        
+#ifdef useSTM
+        , module Data.StateRef.Instances.STM
+#endif
+        
+        ) where
 
 #ifdef useSTM
 import Data.StateRef.Instances.STM

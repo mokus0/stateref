@@ -6,6 +6,7 @@
 module Data.StateRef
         ( module Data.StateRef
         , module Data.StateRef.Classes
+        , module Data.StateRef.Instances
         ) where
 
 import Data.StateRef.Classes

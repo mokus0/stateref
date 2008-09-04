@@ -7,7 +7,13 @@
         FlexibleInstances
   #-}
 
-module Data.MRef.Instances.STM where
+module Data.MRef.Instances.STM
+        ( STM
+        , TMVar
+        , TVar
+        
+        , atomically
+        ) where
 
 import Data.MRef.Classes
 import Data.StateRef (readRef, writeRef, newRef)

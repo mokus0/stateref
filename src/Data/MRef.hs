@@ -5,6 +5,7 @@
 
 module Data.MRef 
         ( module Data.MRef.Classes
+        , module Data.MRef.Instances
         ) where
 
 import Data.MRef.Classes

@@ -8,7 +8,13 @@
         FlexibleInstances
   #-}
 
-module Data.MRef.Instances where
+module Data.MRef.Instances
+        ( MVar
+
+#ifdef useSTM
+        , module Data.MRef.Instances.STM
+#endif
+        ) where
 
 #ifdef useSTM
 import Data.MRef.Instances.STM
