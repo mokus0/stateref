@@ -1,6 +1,6 @@
 name:                   stateref
 version:                0.2
-stability:              experimental
+stability:              provisional
 
 cabal-version:          >= 1.2
 build-type:             Simple
