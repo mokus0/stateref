@@ -19,10 +19,3 @@ class Monad m => PutMRef sr m a | sr -> a where
 
 class (NewMRef sr m a)
        => DefaultMRef sr m a | m a -> sr
-
-newDefaultMRef :: (DefaultMRef sr m a) => a -> m sr
-newDefaultMRef = newMRef
-
-newDefaultEmptyMRef :: (DefaultMRef sr m a) => m sr
-newDefaultEmptyMRef = newEmptyMRef
-
