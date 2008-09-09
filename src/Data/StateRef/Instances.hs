@@ -19,6 +19,8 @@ module Data.StateRef.Instances
         , ST
         , RealWorld
         
+        , ForeignPtr
+        
 #ifdef useSTM
         , module Data.StateRef.Instances.STM
 #endif
@@ -36,6 +38,12 @@ import Control.Concurrent.MVar
 
 import Control.Monad.ST
 import Data.STRef
+
+import qualified Control.Monad.ST.Lazy
+import qualified Data.STRef.Lazy
+
+import Foreign.Storable
+import Foreign.ForeignPtr
 
 -- IORef in IO monad
 instance DefaultStateRef (IORef a) IO a
@@ -68,33 +76,31 @@ instance WriteRef (STRef RealWorld a) IO a where
 instance ModifyRef (STRef RealWorld a) IO a where
         modifyRef r = stToIO . modifyRef r
 
+-- (STRef s) in lazy (ST s) monad
+instance DefaultStateRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a
+instance NewRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
+        newRef = Data.STRef.Lazy.newSTRef
+instance ReadRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
+        readRef = Data.STRef.Lazy.readSTRef
+instance WriteRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
+        writeRef = Data.STRef.Lazy.writeSTRef
+instance ModifyRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
+
 -- MVar in IO monad (constructable but not usable as a "normal" state ref)
 instance NewRef (MVar a) IO (Maybe a) where
 	newRef Nothing = newEmptyMVar
 	newRef (Just x) = newMVar x
 
--- this probably should not actually be defined, unless Ptr supports a finalizer.
--- Probably should change to use ForeignPtr
--- instance Storable a => NewRef (Ptr a) IO a where
---         newRef val = do
---                 ptr <- malloc
---                 poke ptr val
---                 return ptr
--- instance Storable a => ReadRef (Ptr a) IO a where
---         readRef = peek
--- instance Storable a => WriteRef (Ptr a) IO a where
---         writeRef = poke
--- instance Storable a => ModifyRef (Ptr a) IO a where
-
-
-
--- Might be nice (maybe put some of these hypotheticals into a separate module)
--- 
--- instance (MonadState s m) => ReadRef (s -> a) m a where
--- 	readRef = gets
--- 
--- instance MonadReader r m => ReadRef (r -> a) m a where
--- 	readRef = asks
+instance Storable a => NewRef (ForeignPtr a) IO a where
+        newRef val = do
+                ptr <- mallocForeignPtr
+                withForeignPtr ptr (\ptr -> poke ptr val)
+                return ptr
+instance Storable a => ReadRef (ForeignPtr a) IO a where
+        readRef ptr = withForeignPtr ptr peek
+instance Storable a => WriteRef (ForeignPtr a) IO a where
+        writeRef ptr val = withForeignPtr ptr (\ptr -> poke ptr val)
+instance Storable a => ModifyRef (ForeignPtr a) IO a
 
 -- this is an instance I would like to make, but it opens
 -- a big can of worms... it requires incoherent instances, for one.
