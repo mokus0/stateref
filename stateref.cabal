@@ -8,7 +8,7 @@ build-type:             Simple
 author:                 James Cook <mokus@deepbondi.net>
 maintainer:             James Cook <mokus@deepbondi.net>
 
-description:            A type-class generalizing the read/write/modify
+description:            A type-class generalizing the read\/write\/modify
                         operations for stateful variables
 
 Flag useSTM
@@ -38,7 +38,7 @@ Library
     exposed-modules:    Data.StateRef.Instances.STM
                         Data.MRef.Instances.STM
     cpp-options:        -DuseSTM
-  
+    
     if flag(useTMVar)
       cpp-options:      -DuseTMVar
       

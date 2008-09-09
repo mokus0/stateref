@@ -8,6 +8,9 @@
         FlexibleInstances
   #-}
 
+-- |This module exports no new symbols of its own.  It defines several 
+--  basic class instances for creating, reading, and writing standard
+--  reference types, and re-exports the types for which it defines instances.
 module Data.StateRef.Instances
         ( IORef
         , MVar

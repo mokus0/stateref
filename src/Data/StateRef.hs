@@ -5,11 +5,11 @@
 
 -- |This module provides classes and instances for mutable state
 -- references.  Various implementation exist in common usage, but
--- no way to define functions using state references which don't depend
--- on the specific monad or reference type in use.
+-- no way (until now ;-) to define functions using state references
+-- which don't depend on the specific monad or reference type in use.
 -- 
 -- These modules use several language extensions, including multi-parameter
--- type classes and functional dependencies.  
+-- type classes and functional dependencies.
 module Data.StateRef
         ( module Data.StateRef
         , module Data.StateRef.Classes
@@ -40,9 +40,9 @@ modifyDefaultRef :: (DefaultStateRef sr m a, ModifyRef sr m a) => sr -> (a -> a)
 modifyDefaultRef = modifyRef
 
 
--- |Essentially the same concept as 'gets', 'asks', et al.
--- Typically useful to read a field of a referenced ADT by passing a 
--- record selector as the second argument.
+-- |Essentially the same concept as 'Control.Monad.State.gets',
+-- 'Control.Monad.State.asks', et al. Typically useful to read a field of
+-- a referenced ADT by passing a record selector as the second argument.
 readsRef :: (ReadRef sr m a,
              Monad m) =>
             sr -> (a -> b) -> m b

@@ -10,12 +10,15 @@
 module Data.StateRef.Classes where
 
 class Monad m => NewRef sr m a | sr -> a where
+        -- |Construct a new mutable reference containing the provided value.
         newRef :: a -> m sr
 
 class Monad m => WriteRef sr m a | sr -> a where
+        -- |Replace the existing value of the given reference with the provided value.
         writeRef :: sr -> a -> m ()
 
 class Monad m => ReadRef sr m a | sr -> a where
+        -- |Get the current value referenced by the given state reference.
         readRef :: sr -> m a
 
 -- consider whether there needs to be something along the lines of
@@ -35,12 +38,12 @@ class (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef sr m a | sr -> a w
                 writeRef ref x'
                 return ()
 
--- |The \"Default\" functions and typeclasses are used to internally constrain
--- types that do not escape an expression, so that the compiler may choose
--- an instance for the reference type (which it otherwise would not, and 
--- maybe not even tell you until you tried to use your function).  For an
--- example, see the source for 'Data.StateRef.newCounter'.  See also
--- 'Data.MRef.Classes.DefaultMRef'.
+-- |The 'DefaultStateRef' and 'Data.MRef.Classes.DefaultMRef' are used to 
+-- internally constrain types that do not escape an expression, so that the 
+-- compiler may choose an instance for the reference type (which it otherwise
+-- would not, and maybe not even tell you until you tried to use your
+-- function).  For an example, see the source for 'Data.StateRef.newCounter'.
+-- See also 'Data.MRef.Classes.DefaultMRef'.
 -- 
 -- The sole purpose for these classes' existence is as a carrier for an
 -- altered set of functional dependencies, which constrain the reference

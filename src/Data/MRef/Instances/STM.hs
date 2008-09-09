@@ -8,6 +8,11 @@
         FlexibleInstances
   #-}
 
+-- |This module exports no new symbols of its own.  It defines 
+--  basic class instances for creating, reading, and writing 'TVar's and
+--  (if available) 'TMVar's, and re-exports the types for which it defines 
+--  instances as well as the 'atomically' function, which is indispensible
+--  when playing with this stuff in ghci.
 module Data.MRef.Instances.STM
         ( STM
 #ifdef useTMVar

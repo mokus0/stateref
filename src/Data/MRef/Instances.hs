@@ -8,6 +8,9 @@
         FlexibleInstances
   #-}
 
+-- |This module exports no new symbols of its own.  It defines 
+--  basic class instances for creating, reading, and writing 'MVar's, and
+--  re-exports 'MVar'.
 module Data.MRef.Instances
         ( MVar
 
