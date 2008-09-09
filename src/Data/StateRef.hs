@@ -50,7 +50,7 @@ readsRef r f = do
         x <- readRef r
         return (f x)
 
--- |Construct a 'counter' - a monadic value which, each time it is
+-- |Construct a counter - a monadic value which, each time it is
 -- evaluated, returns the 'succ' of the previous value returned.
 newCounter :: (DefaultStateRef sr m1 a,
 	       ModifyRef sr m1 a,
