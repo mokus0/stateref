@@ -48,7 +48,7 @@ Library
                         Data.MRef.Classes
                         Data.MRef.Instances
   if flag(useSTM)
-    exposed-modules:    Data.StateRef.Instances.STM
+    other-modules:      Data.StateRef.Instances.STM
                         Data.MRef.Instances.STM
     cpp-options:        -DuseSTM
     
