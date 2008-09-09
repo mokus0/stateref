@@ -21,7 +21,7 @@ import Data.StateRef.Instances
 
 -- |Create a reference and constrain its type to be the default reference type
 -- for the monad in which it is being created.  See 'newRef'.
-newDefaultRef :: (DefaultStateRef sr m a) => a -> m sr
+newDefaultRef :: (DefaultStateRef sr m a, NewRef sr m a) => a -> m sr
 newDefaultRef = newRef
 
 -- |Read a reference and constrain its type to be the default reference type

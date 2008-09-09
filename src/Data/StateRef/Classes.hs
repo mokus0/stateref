@@ -48,8 +48,7 @@ class (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef sr m a | sr -> a w
 -- The sole purpose for these classes' existence is as a carrier for an
 -- altered set of functional dependencies, which constrain the reference
 -- type to be uniquely determined by the monad and the contained type.
-class (NewRef sr m a)
-       => DefaultStateRef sr m a | m a -> sr
+class Monad m => DefaultStateRef sr m a | sr -> a, m a -> sr
 
 --
 -- in the absence of type families, it'd be nice to be able to say 
