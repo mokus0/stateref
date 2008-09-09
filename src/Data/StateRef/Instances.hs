@@ -66,6 +66,8 @@ instance WriteRef (STRef s a) (ST s) a where
         writeRef = writeSTRef
 instance ModifyRef (STRef s a) (ST s) a where
 
+#ifdef NotHADDOCK
+-- (haddock doesn't like "FlexibleInstances", it seems)
 -- (STRef RealWorld) in IO monad
 instance NewRef (STRef RealWorld a) IO a where
         newRef = stToIO . newRef
@@ -90,6 +92,7 @@ instance ModifyRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
 instance NewRef (MVar a) IO (Maybe a) where
 	newRef Nothing = newEmptyMVar
 	newRef (Just x) = newMVar x
+#endif
 
 instance Storable a => NewRef (ForeignPtr a) IO a where
         newRef val = do

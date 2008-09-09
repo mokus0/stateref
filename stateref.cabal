@@ -28,6 +28,19 @@ Flag useTMVar
 Library
   hs-source-dirs:       src
   extensions:           CPP
+  
+  -- I don't much like this flag, but it's the only way I've found so far
+  -- (after literally _minutes_ of exhaustive search!) of making haddock
+  -- work.  It causes haddock not to see a couple class instances upon
+  -- which it otherwise would choke (at version 0.9 anyway).  
+  -- 
+  -- Slightly preferable would be -DHADDOCK when running haddock.  I've found
+  -- reference to a '--optghc' flag in haddock, but it doesn't work in
+  -- the version I've got here, and there is also no convenient way to
+  -- set in from the .cabal file (there's no 'haddock-options' directive, as
+  -- far as I can tell).
+  ghc-options:          -DNotHADDOCK
+  
   exposed-modules:      Data.StateRef
                         Data.StateRef.Classes
                         Data.StateRef.Instances
