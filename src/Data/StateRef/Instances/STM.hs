@@ -5,7 +5,8 @@
 {-# LANGUAGE
         CPP,
         MultiParamTypeClasses,
-        FlexibleInstances
+        FlexibleInstances,
+        IncoherentInstances
   #-}
 
 -- |This module exports no new symbols of its own.  It defines 
@@ -13,6 +14,14 @@
 --  (if available) 'TMVar's, and re-exports the types for which it defines 
 --  instances as well as the 'atomically' function, which is indispensible
 --  when playing with this stuff in ghci.
+--
+--  Note that this module declares incoherent instances.  The universe should
+--  refrain from imploding on itself as long as you don't define
+--  \"instance MonadIO STM\".  However, hugs doesn't seem to support 
+--  overlapping instances, so I may have to give up on the dream of MonadIO 
+--  everywhere, or introduce some major conditional compilation stuff. (or
+--  abandon hugs support)
+
 module Data.StateRef.Instances.STM
         ( STM
         , TVar
@@ -25,7 +34,15 @@ module Data.StateRef.Instances.STM
 
 import Data.StateRef.Classes
 
+import Control.Monad.Trans
+
 import Control.Concurrent.STM
+
+-- (STM a) in STM and IO-compatible monads
+instance ReadRef (STM a) STM a where
+        readRef = id
+instance MonadIO m => ReadRef (STM a) m a where
+        readRef = liftIO . atomically
 
 -- TVar in STM monad
 instance DefaultStateRef (TVar a) STM a
@@ -37,15 +54,15 @@ instance WriteRef (TVar a) STM a where
         writeRef = writeTVar
 instance ModifyRef (TVar a) STM a
 
--- TVar in IO monad
-instance NewRef (TVar a) IO a where
-        newRef = newTVarIO
-instance ReadRef (TVar a) IO a where
-        readRef = atomically . readRef
-instance WriteRef (TVar a) IO a where
-        writeRef ref = atomically . writeRef ref
-instance ModifyRef (TVar a) IO a where
-        modifyRef ref = atomically . modifyRef ref
+-- TVar in IO-compatible monads
+instance MonadIO m => NewRef (TVar a) m a where
+        newRef = liftIO . newTVarIO
+instance MonadIO m => ReadRef (TVar a) m a where
+        readRef = liftIO . atomically . readRef
+instance MonadIO m => WriteRef (TVar a) m a where
+        writeRef ref = liftIO . atomically . writeRef ref
+instance MonadIO m => ModifyRef (TVar a) m a where
+        modifyRef ref = liftIO . atomically . modifyRef ref
 
 #ifdef useTMVar
 -- TMVar in STM monad
@@ -55,10 +72,10 @@ instance NewRef (TMVar a) STM (Maybe a) where
 instance ReadRef (TMVar a) STM (Maybe a) where
 	readRef tmv = fmap Just (readTMVar tmv) `orElse` return Nothing
 
--- TMVar in IO monad
-instance NewRef (TMVar a) IO (Maybe a) where
-	newRef Nothing = newEmptyTMVarIO
-	newRef (Just x) = newTMVarIO x
-instance ReadRef (TMVar a) IO (Maybe a) where
-	readRef = atomically . readRef
+-- TMVar in IO-compatible monad
+instance MonadIO m => NewRef (TMVar a) m (Maybe a) where
+	newRef Nothing = liftIO newEmptyTMVarIO
+	newRef (Just x) = liftIO (newTMVarIO x)
+instance MonadIO m => ReadRef (TMVar a) m (Maybe a) where
+	readRef = liftIO . atomically . readRef
 #endif

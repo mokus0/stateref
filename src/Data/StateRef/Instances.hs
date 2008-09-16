@@ -11,6 +11,9 @@
 -- |This module exports no new symbols of its own.  It defines several 
 --  basic class instances for creating, reading, and writing standard
 --  reference types, and re-exports the types for which it defines instances.
+--  
+--  TODO: add millions of SPECIALIZE INSTANCE pragmas, for IO monad at
+--  a minimum.
 module Data.StateRef.Instances
         ( IORef
         , MVar
@@ -36,6 +39,7 @@ import Data.StateRef.Classes
 import Data.IORef
 import Control.Concurrent.MVar
 
+import Control.Monad.Trans
 import Control.Monad.ST
 import Data.STRef
 
@@ -45,16 +49,33 @@ import qualified Data.STRef.Lazy
 import Foreign.Storable
 import Foreign.ForeignPtr
 
--- IORef in IO monad
+-- m a in semi-arbitrary monad m
+-- (cannot have instance Monad m => ReadRef (m a) m a, because this activates
+-- functional dependencies that would overconstrain totally unrelated instances
+-- because of the possibility of the future addition of, e.g., instance Monad TMVar)
+instance Monad m => NewRef (IO a) m a where
+        newRef ro = return (return ro)
+instance MonadIO m => ReadRef (IO a) m a where
+        readRef = liftIO
+
+instance Monad m => NewRef (ST s a) m a where
+        newRef ro = return (return ro)
+instance ReadRef (ST s a) (ST s) a where
+        readRef = id
+instance MonadIO m => ReadRef (ST RealWorld a) m a where
+        readRef = liftIO . stToIO
+
+-- IORef in IO-compatible monads
 instance DefaultStateRef (IORef a) IO a
-instance NewRef (IORef a) IO a where
-        newRef = newIORef
-instance ReadRef (IORef a) IO a where
-        readRef = readIORef
-instance WriteRef (IORef a) IO a where
-        writeRef = writeIORef
-instance ModifyRef (IORef a) IO a where
-        modifyRef = modifyIORef
+instance MonadIO m => NewRef (IORef a) m a where
+        newRef = liftIO . newIORef
+instance MonadIO m => ReadRef (IORef a) m a where
+        readRef = liftIO . readIORef
+instance MonadIO m => WriteRef (IORef a) m a where
+        writeRef r = liftIO . writeIORef r
+instance MonadIO m => ModifyRef (IORef a) m a where
+        atomicModifyRef r = liftIO . atomicModifyIORef r
+        modifyRef r = liftIO . modifyIORef r
 
 -- (STRef s) in (ST s) monad
 instance DefaultStateRef (STRef s a) (ST s) a
@@ -68,7 +89,8 @@ instance ModifyRef (STRef s a) (ST s) a where
 
 #ifdef NotHADDOCK
 -- (haddock doesn't like "FlexibleInstances", it seems)
--- (STRef RealWorld) in IO monad
+-- (STRef RealWorld) in IO monad (not MonadIO instances, because the m
+--  would overlap with (ST s) even though there's no instance MonadIO (ST a))
 instance NewRef (STRef RealWorld a) IO a where
         newRef = stToIO . newRef
 instance ReadRef (STRef RealWorld a) IO a where
@@ -88,22 +110,23 @@ instance WriteRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
         writeRef = Data.STRef.Lazy.writeSTRef
 instance ModifyRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
 
--- MVar in IO monad (constructable but not usable as a "normal" state ref)
-instance NewRef (MVar a) IO (Maybe a) where
-	newRef Nothing = newEmptyMVar
-	newRef (Just x) = newMVar x
+-- MVar in IO-compatible monads (constructable but not usable as a "normal" state ref)
+instance MonadIO m => NewRef (MVar a) m (Maybe a) where
+	newRef Nothing = liftIO newEmptyMVar
+	newRef (Just x) = liftIO (newMVar x)
 #endif
 
-instance Storable a => NewRef (ForeignPtr a) IO a where
-        newRef val = do
+-- ForeignPtrs, Ptrs, etc., in IO-compatible monads
+instance (Storable a, MonadIO m) => NewRef (ForeignPtr a) m a where
+        newRef val = liftIO $ do
                 ptr <- mallocForeignPtr
                 withForeignPtr ptr (\ptr -> poke ptr val)
                 return ptr
-instance Storable a => ReadRef (ForeignPtr a) IO a where
-        readRef ptr = withForeignPtr ptr peek
-instance Storable a => WriteRef (ForeignPtr a) IO a where
-        writeRef ptr val = withForeignPtr ptr (\ptr -> poke ptr val)
-instance Storable a => ModifyRef (ForeignPtr a) IO a
+instance (Storable a, MonadIO m) => ReadRef (ForeignPtr a) m a where
+        readRef ptr = liftIO (withForeignPtr ptr peek)
+instance (Storable a, MonadIO m) => WriteRef (ForeignPtr a) m a where
+        writeRef ptr val = liftIO (withForeignPtr ptr (\ptr -> poke ptr val))
+instance (Storable a, MonadIO m) => ModifyRef (ForeignPtr a) m a
 
 -- this is an instance I would like to make, but it opens
 -- a big can of worms... it requires incoherent instances, for one.

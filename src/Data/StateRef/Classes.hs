@@ -31,6 +31,17 @@ class (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef sr m a | sr -> a w
         -- implemented in a separate class (rather than a function with
         -- context (ReadRef sr m a, WriteRef sr m a)) because in most
         -- cases the default implementation cannot act atomically.
+        atomicModifyRef :: sr -> (a -> (a,b)) -> m b
+        atomicModifyRef ref f = do
+                x <- readRef ref
+                let (x', b) = f x
+                writeRef ref x'
+                return b
+        
+        -- |Same thing, but don't thread out the extra return.  Could perhaps
+        -- be implemented slightly more efficiently than 'atomicModifyRef' in many cases.
+        -- Note that implementations are expected to be atomic, if at all possible,
+        -- but not strictly required to be.
         modifyRef :: sr -> (a -> a) -> m ()
         modifyRef ref f = do
                 x <- readRef ref
