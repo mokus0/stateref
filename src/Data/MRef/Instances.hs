@@ -13,6 +13,7 @@
 --  re-exports 'MVar'.
 module Data.MRef.Instances
         ( MVar
+        , MonadIO(..)
 
 #ifdef useSTM
         , module Data.MRef.Instances.STM
@@ -26,15 +27,15 @@ import Data.MRef.Instances.STM
 import Data.MRef.Classes
 
 import Control.Concurrent.MVar
+import Control.Monad.Trans
 
 -- preferred instances
 -- MVar in IO monad
 instance DefaultMRef (MVar a) IO a
-instance NewMRef (MVar a) IO a where
-        newMRef = newMVar
-        newEmptyMRef = newEmptyMVar
-instance TakeMRef (MVar a) IO a where
-	takeMRef = takeMVar
-instance PutMRef (MVar a) IO a where
-	putMRef = putMVar
-
+instance MonadIO m => NewMRef (MVar a) m a where
+        newMRef = liftIO . newMVar
+        newEmptyMRef = liftIO newEmptyMVar
+instance MonadIO m => TakeMRef (MVar a) m a where
+	takeMRef = liftIO . takeMVar
+instance MonadIO m => PutMRef (MVar a) m a where
+	putMRef r = liftIO . putMVar r

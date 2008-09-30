@@ -17,6 +17,7 @@
 module Data.StateRef.Instances
         ( IORef
         , MVar
+        , MonadIO(..)
         
         , STRef
         , ST
