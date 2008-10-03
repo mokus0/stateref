@@ -1,5 +1,5 @@
 name:                   stateref
-version:                0.2.1.0
+version:                0.2.1.1
 stability:              provisional
 
 cabal-version:          >= 1.2
@@ -41,7 +41,8 @@ Library
   -- far as I can tell).
   ghc-options:          -DNotHADDOCK
   
-  exposed-modules:      Data.StateRef
+  exposed-modules:      Data.Accessor
+                        Data.StateRef
                         Data.StateRef.Classes
                         Data.StateRef.Instances
                         Data.MRef

@@ -14,10 +14,12 @@ module Data.StateRef
         ( module Data.StateRef
         , module Data.StateRef.Classes
         , module Data.StateRef.Instances
+        , module Data.Accessor
         ) where
 
 import Data.StateRef.Classes
 import Data.StateRef.Instances
+import Data.Accessor
 
 -- |Create a reference and constrain its type to be the default reference type
 -- for the monad in which it is being created.  See 'newRef'.
