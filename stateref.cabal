@@ -48,6 +48,7 @@ Library
                         Data.MRef
                         Data.MRef.Classes
                         Data.MRef.Instances
+  other-modules:        Data.StateRef.Instances.Undecidable
   if flag(useSTM)
     other-modules:      Data.StateRef.Instances.STM
                         Data.MRef.Instances.STM

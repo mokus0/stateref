@@ -29,6 +29,8 @@ module Data.StateRef.Instances
         , module Data.StateRef.Instances.STM
 #endif
         
+        , module Data.StateRef.Instances.Undecidable
+        
         ) where
 
 #ifdef useSTM
@@ -36,6 +38,7 @@ import Data.StateRef.Instances.STM
 #endif
 
 import Data.StateRef.Classes
+import Data.StateRef.Instances.Undecidable
 
 import Data.IORef
 import Control.Concurrent.MVar
