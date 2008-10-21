@@ -91,8 +91,6 @@ instance WriteRef (STRef s a) (ST s) a where
         writeRef = writeSTRef
 instance ModifyRef (STRef s a) (ST s) a where
 
-#ifdef NotHADDOCK
--- (haddock doesn't like "FlexibleInstances", it seems)
 -- (STRef RealWorld) in IO monad (not MonadIO instances, because the m
 --  would overlap with (ST s) even though there's no instance MonadIO (ST a))
 instance NewRef (STRef RealWorld a) IO a where
@@ -118,7 +116,6 @@ instance ModifyRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
 instance MonadIO m => NewRef (MVar a) m (Maybe a) where
 	newRef Nothing = liftIO newEmptyMVar
 	newRef (Just x) = liftIO (newMVar x)
-#endif
 
 -- ForeignPtrs, Ptrs, etc., in IO-compatible monads
 instance (Storable a, MonadIO m) => NewRef (ForeignPtr a) m a where

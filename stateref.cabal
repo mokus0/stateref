@@ -43,32 +43,6 @@ Flag useTMVar
                         
   Default:              True
 
-Flag haddockHack
-  Description:          I don't much like this flag, but it's the only way
-                        I've found so far (after literally _minutes_ of
-                        exhaustive search!) of making haddock work.  It
-                        triggers -DNotHADDOCK, which causes haddock not to
-                        see a couple class instances upon which it otherwise
-                        would choke (at version 0.9 anyway).  
-                        
-                        Slightly preferable would be -DHADDOCK when running
-                        haddock.  I've found reference to a '--optghc' flag in
-                        haddock, but it doesn't work in the version I've got
-                        here, and there is also no convenient way to set it
-                        from the .cabal file (there's no 'haddock-options'
-                        directive, as far as I can tell).
-                        
-                        Note also that this triggers a warning in later
-                        versions of cabal that it "should" be cpp-options
-                        instead of ghc-options.  This is simply wrong.
-                        The whole point is that ghc gets passed the flag
-                        and haddock doesn't (which it would if cpp-options
-                        were used).  On the other hand, when this hack
-                        is active it also cuts the offending instances out
-                        of a hugs build.
-                        
-  Default:              False
-
 Library
   hs-source-dirs:       src
   extensions:           CPP
@@ -96,9 +70,3 @@ Library
   build-depends:        base, mtl
   if flag(useSTM)
     build-depends:      stm
-  
-  if flag(haddockHack)
-    ghc-options:        -DNotHADDOCK
-  else
-    cpp-options:        -DNotHADDOCK
-  
