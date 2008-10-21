@@ -1,18 +1,23 @@
 name:                   stateref
 version:                0.2.1.1
 stability:              provisional
+license:                BSD3
+license-file:           LICENSE
 
 cabal-version:          >= 1.2
 build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
 maintainer:             James Cook <mokus@deepbondi.net>
+homepage:               http://darcs.deepbondi.net/stateref
 
 category:               Data
 synopsis:               Abstraction for things that work like IORef.
 description:            A collection of type-classes generalizing the
                         read\/write\/modify operations for stateful variables
                         provided by things like IORef, TVar, &c.
+
+tested-with:            GHC
 
 Flag useSTM
   Description:          Include instances for STM types
@@ -27,7 +32,15 @@ Flag useTMVar
                         were either an explicit backtrack command in cabal
                         or if 'buildable:false' would trigger a backtrack.
                         
-                        Or if I could say "default: not(impl(hugs))"
+                        Or if I could say "default: not(impl(hugs))" for this
+                        flag.
+                        
+                        Note that this is irrelevant at the moment because
+                        I broke Hugs+STM support by adding MonadIO m => ...
+                        instances.  If anyone really wants me to fix it,
+                        speak up - but those instances are pretty darn
+                        convenient.
+                        
   Default:              True
 
 Flag haddockHack
@@ -41,7 +54,7 @@ Flag haddockHack
                         Slightly preferable would be -DHADDOCK when running
                         haddock.  I've found reference to a '--optghc' flag in
                         haddock, but it doesn't work in the version I've got
-                        here, and there is also no convenient way to set in
+                        here, and there is also no convenient way to set it
                         from the .cabal file (there's no 'haddock-options'
                         directive, as far as I can tell).
                         
