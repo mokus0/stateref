@@ -9,7 +9,7 @@ build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
 maintainer:             James Cook <mokus@deepbondi.net>
-homepage:               http://darcs.deepbondi.net/stateref
+homepage:               http://code.haskell.org/~mokus/stateref/
 
 category:               Data
 synopsis:               Abstraction for things that work like IORef.
