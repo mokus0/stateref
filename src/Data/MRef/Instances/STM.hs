@@ -29,41 +29,61 @@ import Data.StateRef.Instances.STM ()
 
 import Control.Concurrent.STM
 
+-- MRef STM in IO monad
+instance NewMRef (MRef STM a) IO a where
+#ifdef useTMVar
+        newMReference = fmap MRef . newTMVarIO
+        newEmptyMReference = fmap MRef newEmptyTMVarIO
+#else
+        newMReference = fmap MRef . newTVarIO . Just
+        newEmptyMReference = fmap MRef (newTVarIO Nothing)
+#endif
+        
+instance TakeMRef (MRef STM a) IO a where
+        takeMReference (MRef ref) = atomically (takeMReference ref)
+instance PutMRef (MRef STM a) IO a where
+        putMReference (MRef ref) = atomically . putMReference ref
+
+
 #ifdef useTMVar
 --TMVar in STM monad
-instance DefaultMRef (TMVar a) STM a
+instance HasMRef STM where
+    newMRef x    = fmap MRef (newTMVar x)
+    newEmptyMRef = fmap MRef newEmptyTMVar
 instance NewMRef (TMVar a) STM a where
-        newMRef = newTMVar
-        newEmptyMRef = newEmptyTMVar
+        newMReference = newTMVar
+        newEmptyMReference = newEmptyTMVar
 
 instance TakeMRef (TMVar a) STM a where
-	takeMRef = takeTMVar
+    takeMReference = takeTMVar
 instance PutMRef (TMVar a) STM a where
-	putMRef = putTMVar
+    putMReference = putTMVar
 
 -- TMVar in IO monad
 instance NewMRef (TMVar a) IO a where
-        newMRef = newTMVarIO
-        newEmptyMRef = newEmptyTMVarIO
+        newMReference = newTMVarIO
+        newEmptyMReference = newEmptyTMVarIO
         
 instance TakeMRef (TMVar a) IO a where
-        takeMRef = atomically . takeMRef
+        takeMReference = atomically . takeMReference
 instance PutMRef (TMVar a) IO a where
-        putMRef ref = atomically . putMRef ref
+        putMReference ref = atomically . putMReference ref
 #endif
 
 -- incidental instances, which may occasionally be handy in a pinch
 -- TVars containing "Maybe" values in STM monad.
 -- Also use as default if TMVar isn't available.
 #ifndef useTMVar
-instance DefaultMRef (TVar (Maybe a)) STM a
+instance HasMRef STM where
+    newMRef x    = fmap MRef (newTVar (Just x))
+    newEmptyMRef = fmap MRef (newTVar Nothing)
 #endif
 instance NewMRef (TVar (Maybe a)) STM a where
-        newMRef = newReference . Just
-        newEmptyMRef = newReference Nothing
+        newMReference = newReference . Just
+        newEmptyMReference = newReference Nothing
 
 instance TakeMRef (TVar (Maybe a)) STM a where
-        takeMRef ref = do
+        takeMReference ref = do
                 x <- readReference ref
                 case x of
                         Nothing -> retry
@@ -71,7 +91,7 @@ instance TakeMRef (TVar (Maybe a)) STM a where
                                 writeReference ref Nothing
                                 return x
 instance PutMRef (TVar (Maybe a)) STM a where
-        putMRef ref val = do
+        putMReference ref val = do
                 x <- readReference ref
                 case x of
                         Nothing -> writeReference ref (Just val)
@@ -79,9 +99,9 @@ instance PutMRef (TVar (Maybe a)) STM a where
 
 -- TVars containing "Maybe" values in IO monad
 instance NewMRef (TVar (Maybe a)) IO a where
-        newMRef = newReference . Just
-        newEmptyMRef = newReference Nothing
+        newMReference = newReference . Just
+        newEmptyMReference = newReference Nothing
 instance TakeMRef (TVar (Maybe a)) IO a where
-        takeMRef = atomically . takeMRef
+        takeMReference = atomically . takeMReference
 instance PutMRef (TVar (Maybe a)) IO a where
-        putMRef ref = atomically . putMRef ref
+        putMReference ref = atomically . putMReference ref

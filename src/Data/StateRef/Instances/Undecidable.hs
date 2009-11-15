@@ -20,5 +20,7 @@ instance ReadRef sr m a => ReadRef (UnsafeModifyRef sr) m a where
         readReference (UnsafeModifyRef sr) = readReference sr
 instance WriteRef sr m a => WriteRef (UnsafeModifyRef sr) m a where
         writeReference (UnsafeModifyRef sr) = writeReference sr
-instance (ReadRef sr m a, WriteRef sr m a) => ModifyRef (UnsafeModifyRef sr) m a
+instance (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef (UnsafeModifyRef sr) m a where
+    atomicModifyReference   = defaultAtomicModifyReference
+    modifyReference         = defaultModifyReference
 

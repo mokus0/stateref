@@ -31,11 +31,13 @@ import Control.Monad.Trans
 
 -- preferred instances
 -- MVar in IO monad
-instance DefaultMRef (MVar a) IO a
+instance HasMRef IO where
+    newMRef x    = fmap MRef (newMVar x)
+    newEmptyMRef = fmap MRef newEmptyMVar
 instance MonadIO m => NewMRef (MVar a) m a where
-        newMRef = liftIO . newMVar
-        newEmptyMRef = liftIO newEmptyMVar
+        newMReference = liftIO . newMVar
+        newEmptyMReference = liftIO newEmptyMVar
 instance MonadIO m => TakeMRef (MVar a) m a where
-	takeMRef = liftIO . takeMVar
+	takeMReference = liftIO . takeMVar
 instance MonadIO m => PutMRef (MVar a) m a where
-	putMRef r = liftIO . putMVar r
+	putMReference r = liftIO . putMVar r

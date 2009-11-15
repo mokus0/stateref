@@ -55,7 +55,9 @@ instance ReadRef (TVar a) STM a where
         readReference = readTVar
 instance WriteRef (TVar a) STM a where
         writeReference = writeTVar
-instance ModifyRef (TVar a) STM a
+instance ModifyRef (TVar a) STM a where
+    atomicModifyReference   = defaultAtomicModifyReference
+    modifyReference         = defaultModifyReference
 
 -- TVar in IO-compatible monads
 instance MonadIO m => NewRef (TVar a) m a where
@@ -65,7 +67,21 @@ instance MonadIO m => ReadRef (TVar a) m a where
 instance MonadIO m => WriteRef (TVar a) m a where
         writeReference ref = liftIO . atomically . writeReference ref
 instance MonadIO m => ModifyRef (TVar a) m a where
-        modifyReference ref = liftIO . atomically . modifyReference ref
+        modifyReference ref         = liftIO . atomically . modifyReference ref
+        atomicModifyReference ref   = liftIO . atomically . atomicModifyReference ref
+
+-- @Ref STM@ in IO-compatible monads
+instance MonadIO m => NewRef (Ref STM a) m a where
+        newReference x = do
+            sr <- liftIO (newTVarIO x)
+            return (Ref sr)
+instance MonadIO m => ReadRef (Ref STM a) m a where
+        readReference (Ref sr) = liftIO (atomically (readReference sr))
+instance MonadIO m => WriteRef (Ref STM a) m a where
+        writeReference (Ref sr) = liftIO . atomically . writeReference sr
+instance MonadIO m => ModifyRef (Ref STM a) m a where
+        modifyReference (Ref sr)        = liftIO . atomically . modifyReference sr
+        atomicModifyReference (Ref sr)  = liftIO . atomically . atomicModifyReference sr
 
 #ifdef useTMVar
 -- TMVar in STM monad

@@ -1,8 +1,3 @@
-{-
- -      ``StateRef.hs''
- -      (c) 2008 Cook, J. MR  SSD, Inc.
- -}
-
 -- |This module provides classes and instances for mutable state
 -- references.  Various implementation exist in common usage, but
 -- no way (until now ;-) to define functions using state references
@@ -22,20 +17,20 @@ import Data.StateRef.Instances
 import Data.Accessor
 
 -- |Read a 'Ref'.  See 'readReference'.
-readRef :: HasRef m => Ref m a -> m a
+readRef :: Ref m a -> m a
 readRef = readReference
 
 -- |Write a 'Ref'.  See 'writeReference'
-writeRef :: HasRef m => Ref m a -> a -> m ()
+writeRef :: Ref m a -> a -> m ()
 writeRef = writeReference
 
 -- |Modify a 'Ref'.  See 'modifyReference'.
-atomicModifyRef :: HasRef m => Ref m a -> (a -> (a,b)) -> m b
+atomicModifyRef :: Ref m a -> (a -> (a,b)) -> m b
 atomicModifyRef = atomicModifyReference
 
 
 -- |Modify a 'Ref'.  See 'modifyReference'.
-modifyRef :: HasRef m => Ref m a -> (a -> a) -> m ()
+modifyRef :: Ref m a -> (a -> a) -> m ()
 modifyRef = modifyReference
 
 
@@ -51,6 +46,7 @@ readsRef r f = do
 
 -- |Construct a counter - a monadic value which, each time it is
 -- evaluated, returns the 'succ' of the previous value returned.
+newCounter :: (HasRef m, Monad m, Enum a) => a -> m (m a)
 newCounter n = do
         c <- newRef n
         return $ do
@@ -72,6 +68,9 @@ newCounter n = do
 -- this isn't a \"bug\" because the type is still valid, but it seems like
 -- something ghc \"ought\" to do, since a and a1 are doomed to unification
 -- anyway.
+mkLapseReader
+  :: (ReadRef sr m a, HasRef m, Monad m) =>
+     sr -> (a -> a -> b) -> m (m b)
 mkLapseReader var f = do
         startVal <- readReference var
         prevRef <- newRef startVal

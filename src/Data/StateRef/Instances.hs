@@ -53,12 +53,12 @@ import qualified Data.STRef.Lazy
 import Foreign.Storable
 import Foreign.ForeignPtr
 
--- Ref in any monad:
-instance Monad m => ReadRef (Ref m a) m a where
+-- @Ref m@ in @m@:
+instance ReadRef (Ref m a) m a where
     readReference (Ref sr) = readReference sr
-instance Monad m => WriteRef (Ref m a) m a where
+instance WriteRef (Ref m a) m a where
     writeReference (Ref sr) = writeReference sr
-instance Monad m => ModifyRef (Ref m a) m a where
+instance ModifyRef (Ref m a) m a where
     atomicModifyReference (Ref sr) = atomicModifyReference sr
     modifyReference (Ref sr) = modifyReference sr
 
@@ -93,6 +93,18 @@ instance MonadIO m => ModifyRef (IORef a) m a where
         atomicModifyReference r = liftIO . atomicModifyIORef r
         modifyReference r = liftIO . modifyIORef r
 
+-- @Ref IO@ in IO-compatible monads
+--   (maybe...)
+-- instance MonadIO m => NewRef (Ref IO a) m a where
+--         newReference (Ref sr) = liftIO (newIORef sr)
+-- instance MonadIO m => ReadRef (Ref IO a) m a where
+--         readReference (Ref sr) = liftIO (readIORef sr)
+-- instance MonadIO m => WriteRef (Ref IO a) m a where
+--         writeReference (Ref sr) = liftIO . writeIORef sr
+-- instance MonadIO m => ModifyRef (Ref IO a) m a where
+--         atomicModifyReference (Ref sr) = liftIO . atomicModifyIORef sr
+--         modifyReference (Ref sr) = liftIO . modifyIORef sr
+
 -- (STRef s) in (ST s) monad
 instance HasRef (ST s) where
     newRef x = do
@@ -105,6 +117,8 @@ instance ReadRef (STRef s a) (ST s) a where
 instance WriteRef (STRef s a) (ST s) a where
         writeReference = writeSTRef
 instance ModifyRef (STRef s a) (ST s) a where
+    atomicModifyReference   = defaultAtomicModifyReference
+    modifyReference         = defaultModifyReference
 
 -- (STRef RealWorld) in IO monad (not MonadIO instances, because the m
 --  would overlap with (ST s) even though there's no instance MonadIO (ST a))
@@ -115,7 +129,8 @@ instance ReadRef (STRef RealWorld a) IO a where
 instance WriteRef (STRef RealWorld a) IO a where
         writeReference r = stToIO . writeReference r
 instance ModifyRef (STRef RealWorld a) IO a where
-        modifyReference r = stToIO . modifyReference r
+        modifyReference r       = stToIO . modifyReference r
+        atomicModifyReference r = stToIO . atomicModifyReference r
 
 -- (STRef s) in lazy (ST s) monad
 instance HasRef (Control.Monad.ST.Lazy.ST s) where
@@ -129,11 +144,13 @@ instance ReadRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
 instance WriteRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
         writeReference = Data.STRef.Lazy.writeSTRef
 instance ModifyRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
+    atomicModifyReference   = defaultAtomicModifyReference
+    modifyReference         = defaultModifyReference
 
 -- MVar in IO-compatible monads (constructable but not usable as a "normal" state ref)
 instance MonadIO m => NewRef (MVar a) m (Maybe a) where
-	newReference Nothing = liftIO newEmptyMVar
-	newReference (Just x) = liftIO (newMVar x)
+    newReference Nothing = liftIO newEmptyMVar
+    newReference (Just x) = liftIO (newMVar x)
 
 -- ForeignPtrs, Ptrs, etc., in IO-compatible monads
 instance (Storable a, MonadIO m) => NewRef (ForeignPtr a) m a where
@@ -145,7 +162,9 @@ instance (Storable a, MonadIO m) => ReadRef (ForeignPtr a) m a where
         readReference ptr = liftIO (withForeignPtr ptr peek)
 instance (Storable a, MonadIO m) => WriteRef (ForeignPtr a) m a where
         writeReference ptr val = liftIO (withForeignPtr ptr (\ptr -> poke ptr val))
-instance (Storable a, MonadIO m) => ModifyRef (ForeignPtr a) m a
+instance (Storable a, MonadIO m) => ModifyRef (ForeignPtr a) m a where
+    atomicModifyReference   = defaultAtomicModifyReference
+    modifyReference         = defaultModifyReference
 
 -- this is an instance I would like to make, but it opens
 -- a big can of worms... it requires incoherent instances, for one.
