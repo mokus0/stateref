@@ -1,7 +1,3 @@
-{-
- -      ``Data/StateRef/Instances/Undecidable''
- -      (c) 2008 Cook, J. MR  SSD, Inc.
- -}
 {-# LANGUAGE
         MultiParamTypeClasses,
         FlexibleInstances,
