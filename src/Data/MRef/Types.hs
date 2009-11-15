@@ -10,7 +10,7 @@
 --  This interface may be subject to future expansion.  Presently, rather 
 --  than providing something like 'Control.Concurrent.MVar.tryTakeMVar',
 --  instances for \"'Data.StateRef.Types.ReadRef' sr m ('Maybe' a)\" are
---  provided, giving 'Data.StateRef.Types.readRef' the same type 
+--  provided, giving 'Data.StateRef.Types.readReference' the same type 
 --  tryTakeMRef would have if it existed.  There is currently nothing like
 --  'Control.Concurrent.MVar.tryPutMVar', though.  Perhaps there should be.
 --  Or, perhaps this is the sort of thing the weird (to me) signature of

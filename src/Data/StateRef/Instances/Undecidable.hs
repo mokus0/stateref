@@ -17,8 +17,8 @@ import Data.StateRef.Types
 newtype UnsafeModifyRef sr = UnsafeModifyRef sr
 
 instance ReadRef sr m a => ReadRef (UnsafeModifyRef sr) m a where
-        readRef (UnsafeModifyRef sr) = readRef sr
+        readReference (UnsafeModifyRef sr) = readReference sr
 instance WriteRef sr m a => WriteRef (UnsafeModifyRef sr) m a where
-        writeRef (UnsafeModifyRef sr) = writeRef sr
+        writeReference (UnsafeModifyRef sr) = writeReference sr
 instance (ReadRef sr m a, WriteRef sr m a) => ModifyRef (UnsafeModifyRef sr) m a
 

@@ -21,31 +21,22 @@ import Data.StateRef.Types
 import Data.StateRef.Instances
 import Data.Accessor
 
--- |Create a reference and constrain its type to be the default reference type
--- for the monad in which it is being created.  See 'newRef'.
-newDefaultRef :: HasRef m => a -> m (Ref m a)
-newDefaultRef = newRef
+-- |Read a 'Ref'.  See 'readReference'.
+readRef :: HasRef m => Ref m a -> m a
+readRef = readReference
 
--- |Read a reference and constrain its type to be the default reference type
--- for the monad in which it is being read.  See 'readRef'.
-readDefaultRef :: HasRef m => Ref m a -> m a
-readDefaultRef = readRef
+-- |Write a 'Ref'.  See 'writeReference'
+writeRef :: HasRef m => Ref m a -> a -> m ()
+writeRef = writeReference
 
--- |Write a reference and constrain its type to be the default reference type
--- for the monad in which it is being written.  See 'writeRef'
-writeDefaultRef :: HasRef m => Ref m a -> a -> m ()
-writeDefaultRef = writeRef
-
--- |Modify a reference and constrain its type to be the default reference type
--- for the monad in which it is being modified.  See 'modifyRef'.
-atomicModifyDefaultRef :: HasRef m => Ref m a -> (a -> (a,b)) -> m b
-atomicModifyDefaultRef = atomicModifyRef
+-- |Modify a 'Ref'.  See 'modifyReference'.
+atomicModifyRef :: HasRef m => Ref m a -> (a -> (a,b)) -> m b
+atomicModifyRef = atomicModifyReference
 
 
--- |Modify a reference and constrain its type to be the default reference type
--- for the monad in which it is being modified.  See 'modifyRef'.
-modifyDefaultRef :: HasRef m => Ref m a -> (a -> a) -> m ()
-modifyDefaultRef = modifyRef
+-- |Modify a 'Ref'.  See 'modifyReference'.
+modifyRef :: HasRef m => Ref m a -> (a -> a) -> m ()
+modifyRef = modifyReference
 
 
 -- |Essentially the same concept as 'Control.Monad.State.gets',
@@ -55,7 +46,7 @@ readsRef :: (ReadRef sr m a,
              Monad m) =>
             sr -> (a -> b) -> m b
 readsRef r f = do
-        x <- readRef r
+        x <- readReference r
         return (f x)
 
 -- |Construct a counter - a monadic value which, each time it is
@@ -63,8 +54,8 @@ readsRef r f = do
 newCounter n = do
         c <- newRef n
         return $ do
-            x <- readDefaultRef c
-            writeDefaultRef c (succ x)
+            x <- readRef c
+            writeRef c (succ x)
             return x
 
 -- |Create a \"lapse reader\" (suggestions for better terminology are more 
@@ -82,13 +73,13 @@ newCounter n = do
 -- something ghc \"ought\" to do, since a and a1 are doomed to unification
 -- anyway.
 mkLapseReader var f = do
-        startVal <- readRef var
+        startVal <- readReference var
         prevRef <- newRef startVal
         
         return $ do
-                newVal <- readRef var
-                prevVal <- readDefaultRef prevRef
+                newVal <- readReference var
+                prevVal <- readRef prevRef
                 
-                writeRef prevRef newVal
+                writeReference prevRef newVal
                 
                 return (f newVal prevVal)

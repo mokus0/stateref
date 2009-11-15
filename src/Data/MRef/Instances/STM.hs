@@ -24,7 +24,7 @@ module Data.MRef.Instances.STM
         ) where
 
 import Data.MRef.Types
-import Data.StateRef (readRef, writeRef, newReference)
+import Data.StateRef (readReference, writeReference, newReference)
 import Data.StateRef.Instances.STM ()
 
 import Control.Concurrent.STM
@@ -64,17 +64,17 @@ instance NewMRef (TVar (Maybe a)) STM a where
 
 instance TakeMRef (TVar (Maybe a)) STM a where
         takeMRef ref = do
-                x <- readRef ref
+                x <- readReference ref
                 case x of
                         Nothing -> retry
                         Just x -> do
-                                writeRef ref Nothing
+                                writeReference ref Nothing
                                 return x
 instance PutMRef (TVar (Maybe a)) STM a where
         putMRef ref val = do
-                x <- readRef ref
+                x <- readReference ref
                 case x of
-                        Nothing -> writeRef ref (Just val)
+                        Nothing -> writeReference ref (Just val)
                         Just x -> retry
 
 -- TVars containing "Maybe" values in IO monad

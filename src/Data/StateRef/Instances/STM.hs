@@ -40,9 +40,9 @@ import Control.Concurrent.STM
 
 -- (STM a) in STM and IO-compatible monads
 instance ReadRef (STM a) STM a where
-        readRef = id
+        readReference = id
 instance MonadIO m => ReadRef (STM a) m a where
-        readRef = liftIO . atomically
+        readReference = liftIO . atomically
 
 -- TVar in STM monad
 instance HasRef STM where
@@ -52,20 +52,20 @@ instance HasRef STM where
 instance NewRef (TVar a) STM a where
         newReference = newTVar
 instance ReadRef (TVar a) STM a where
-        readRef = readTVar
+        readReference = readTVar
 instance WriteRef (TVar a) STM a where
-        writeRef = writeTVar
+        writeReference = writeTVar
 instance ModifyRef (TVar a) STM a
 
 -- TVar in IO-compatible monads
 instance MonadIO m => NewRef (TVar a) m a where
         newReference = liftIO . newTVarIO
 instance MonadIO m => ReadRef (TVar a) m a where
-        readRef = liftIO . atomically . readRef
+        readReference = liftIO . atomically . readReference
 instance MonadIO m => WriteRef (TVar a) m a where
-        writeRef ref = liftIO . atomically . writeRef ref
+        writeReference ref = liftIO . atomically . writeReference ref
 instance MonadIO m => ModifyRef (TVar a) m a where
-        modifyRef ref = liftIO . atomically . modifyRef ref
+        modifyReference ref = liftIO . atomically . modifyReference ref
 
 #ifdef useTMVar
 -- TMVar in STM monad
@@ -73,12 +73,12 @@ instance NewRef (TMVar a) STM (Maybe a) where
 	newReference Nothing = newEmptyTMVar
 	newReference (Just x) = newTMVar x
 instance ReadRef (TMVar a) STM (Maybe a) where
-	readRef tmv = fmap Just (readTMVar tmv) `orElse` return Nothing
+	readReference tmv = fmap Just (readTMVar tmv) `orElse` return Nothing
 
 -- TMVar in IO-compatible monad
 instance MonadIO m => NewRef (TMVar a) m (Maybe a) where
 	newReference Nothing = liftIO newEmptyTMVarIO
 	newReference (Just x) = liftIO (newTMVarIO x)
 instance MonadIO m => ReadRef (TMVar a) m (Maybe a) where
-	readRef = liftIO . atomically . readRef
+	readReference = liftIO . atomically . readReference
 #endif

@@ -55,12 +55,12 @@ import Foreign.ForeignPtr
 
 -- Ref in any monad:
 instance Monad m => ReadRef (Ref m a) m a where
-    readRef (Ref sr) = readRef sr
+    readReference (Ref sr) = readReference sr
 instance Monad m => WriteRef (Ref m a) m a where
-    writeRef (Ref sr) = writeRef sr
+    writeReference (Ref sr) = writeReference sr
 instance Monad m => ModifyRef (Ref m a) m a where
-    atomicModifyRef (Ref sr) = atomicModifyRef sr
-    modifyRef (Ref sr) = modifyRef sr
+    atomicModifyReference (Ref sr) = atomicModifyReference sr
+    modifyReference (Ref sr) = modifyReference sr
 
 -- m a in semi-arbitrary monad m
 -- (cannot have instance Monad m => ReadRef (m a) m a, because this activates
@@ -69,14 +69,14 @@ instance Monad m => ModifyRef (Ref m a) m a where
 instance Monad m => NewRef (IO a) m a where
         newReference ro = return (return ro)
 instance MonadIO m => ReadRef (IO a) m a where
-        readRef = liftIO
+        readReference = liftIO
 
 instance Monad m => NewRef (ST s a) m a where
         newReference ro = return (return ro)
 instance ReadRef (ST s a) (ST s) a where
-        readRef = id
+        readReference = id
 instance MonadIO m => ReadRef (ST RealWorld a) m a where
-        readRef = liftIO . stToIO
+        readReference = liftIO . stToIO
 
 -- IORef in IO-compatible monads
 instance HasRef IO where
@@ -86,12 +86,12 @@ instance HasRef IO where
 instance MonadIO m => NewRef (IORef a) m a where
         newReference = liftIO . newIORef
 instance MonadIO m => ReadRef (IORef a) m a where
-        readRef = liftIO . readIORef
+        readReference = liftIO . readIORef
 instance MonadIO m => WriteRef (IORef a) m a where
-        writeRef r = liftIO . writeIORef r
+        writeReference r = liftIO . writeIORef r
 instance MonadIO m => ModifyRef (IORef a) m a where
-        atomicModifyRef r = liftIO . atomicModifyIORef r
-        modifyRef r = liftIO . modifyIORef r
+        atomicModifyReference r = liftIO . atomicModifyIORef r
+        modifyReference r = liftIO . modifyIORef r
 
 -- (STRef s) in (ST s) monad
 instance HasRef (ST s) where
@@ -101,9 +101,9 @@ instance HasRef (ST s) where
 instance NewRef (STRef s a) (ST s) a where
         newReference = newSTRef
 instance ReadRef (STRef s a) (ST s) a where
-        readRef = readSTRef
+        readReference = readSTRef
 instance WriteRef (STRef s a) (ST s) a where
-        writeRef = writeSTRef
+        writeReference = writeSTRef
 instance ModifyRef (STRef s a) (ST s) a where
 
 -- (STRef RealWorld) in IO monad (not MonadIO instances, because the m
@@ -111,11 +111,11 @@ instance ModifyRef (STRef s a) (ST s) a where
 instance NewRef (STRef RealWorld a) IO a where
         newReference = stToIO . newReference
 instance ReadRef (STRef RealWorld a) IO a where
-        readRef = stToIO . readRef
+        readReference = stToIO . readReference
 instance WriteRef (STRef RealWorld a) IO a where
-        writeRef r = stToIO . writeRef r
+        writeReference r = stToIO . writeReference r
 instance ModifyRef (STRef RealWorld a) IO a where
-        modifyRef r = stToIO . modifyRef r
+        modifyReference r = stToIO . modifyReference r
 
 -- (STRef s) in lazy (ST s) monad
 instance HasRef (Control.Monad.ST.Lazy.ST s) where
@@ -125,9 +125,9 @@ instance HasRef (Control.Monad.ST.Lazy.ST s) where
 instance NewRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
         newReference = Data.STRef.Lazy.newSTRef
 instance ReadRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
-        readRef = Data.STRef.Lazy.readSTRef
+        readReference = Data.STRef.Lazy.readSTRef
 instance WriteRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
-        writeRef = Data.STRef.Lazy.writeSTRef
+        writeReference = Data.STRef.Lazy.writeSTRef
 instance ModifyRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
 
 -- MVar in IO-compatible monads (constructable but not usable as a "normal" state ref)
@@ -142,9 +142,9 @@ instance (Storable a, MonadIO m) => NewRef (ForeignPtr a) m a where
                 withForeignPtr ptr (\ptr -> poke ptr val)
                 return ptr
 instance (Storable a, MonadIO m) => ReadRef (ForeignPtr a) m a where
-        readRef ptr = liftIO (withForeignPtr ptr peek)
+        readReference ptr = liftIO (withForeignPtr ptr peek)
 instance (Storable a, MonadIO m) => WriteRef (ForeignPtr a) m a where
-        writeRef ptr val = liftIO (withForeignPtr ptr (\ptr -> poke ptr val))
+        writeReference ptr val = liftIO (withForeignPtr ptr (\ptr -> poke ptr val))
 instance (Storable a, MonadIO m) => ModifyRef (ForeignPtr a) m a
 
 -- this is an instance I would like to make, but it opens
@@ -162,12 +162,12 @@ instance (Storable a, MonadIO m) => ModifyRef (ForeignPtr a) m a
 --           StateRef s2 m a)
 --                 => StateRef (s1 -> s2) m a
 --         where
---                 readRef f       = do
+--                 readReference f       = do
 --                         s1 <- get
---                         readRef (f s1)
---                 writeRef f val  = do
+--                         readReference (f s1)
+--                 writeReference f val  = do
 --                         s1 <- get
---                         writeRef (f s1) val
---                 modifyRef f g = do
+--                         writeReference (f s1) val
+--                 modifyReference f g = do
 --                         s1 <- get
---                         modifyRef (f s1) g
+--                         modifyReference (f s1) g
