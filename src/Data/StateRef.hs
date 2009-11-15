@@ -6,11 +6,11 @@
 -- These modules use several language extensions, including multi-parameter
 -- type classes and functional dependencies.
 module Data.StateRef
-        ( module Data.StateRef
-        , module Data.StateRef.Types
-        , module Data.StateRef.Instances
-        , module Data.Accessor
-        ) where
+    ( module Data.StateRef
+    , module Data.StateRef.Types
+    , module Data.StateRef.Instances
+    , module Data.Accessor
+    ) where
 
 import Data.StateRef.Types
 import Data.StateRef.Instances
@@ -41,18 +41,18 @@ readsRef :: (ReadRef sr m a,
              Monad m) =>
             sr -> (a -> b) -> m b
 readsRef r f = do
-        x <- readReference r
-        return (f x)
+    x <- readReference r
+    return (f x)
 
 -- |Construct a counter - a monadic value which, each time it is
 -- evaluated, returns the 'succ' of the previous value returned.
 newCounter :: (HasRef m, Monad m, Enum a) => a -> m (m a)
 newCounter n = do
-        c <- newRef n
-        return $ do
-            x <- readRef c
-            writeRef c (succ x)
-            return x
+    c <- newRef n
+    return $ do
+        x <- readRef c
+        writeRef c (succ x)
+        return x
 
 -- |Create a \"lapse reader\" (suggestions for better terminology are more 
 -- than welcome), a sort of a time-lapse of the variable.  The first 
@@ -72,13 +72,13 @@ mkLapseReader
   :: (ReadRef sr m a, HasRef m, Monad m) =>
      sr -> (a -> a -> b) -> m (m b)
 mkLapseReader var f = do
-        startVal <- readReference var
-        prevRef <- newRef startVal
+    startVal <- readReference var
+    prevRef <- newRef startVal
+    
+    return $ do
+        newVal <- readReference var
+        prevVal <- readRef prevRef
         
-        return $ do
-                newVal <- readReference var
-                prevVal <- readRef prevRef
-                
-                writeReference prevRef newVal
-                
-                return (f newVal prevVal)
+        writeReference prevRef newVal
+        
+        return (f newVal prevVal)

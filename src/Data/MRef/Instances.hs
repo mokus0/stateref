@@ -12,13 +12,13 @@
 --  basic class instances for creating, reading, and writing 'MVar's, and
 --  re-exports 'MVar'.
 module Data.MRef.Instances
-        ( MVar
-        , MonadIO(..)
+    ( MVar
+    , MonadIO(..)
 
 #ifdef useSTM
-        , module Data.MRef.Instances.STM
+    , module Data.MRef.Instances.STM
 #endif
-        ) where
+    ) where
 
 #ifdef useSTM
 import Data.MRef.Instances.STM
@@ -35,9 +35,9 @@ instance HasMRef IO where
     newMRef x    = fmap MRef (newMVar x)
     newEmptyMRef = fmap MRef newEmptyMVar
 instance MonadIO m => NewMRef (MVar a) m a where
-        newMReference = liftIO . newMVar
-        newEmptyMReference = liftIO newEmptyMVar
+    newMReference = liftIO . newMVar
+    newEmptyMReference = liftIO newEmptyMVar
 instance MonadIO m => TakeMRef (MVar a) m a where
-	takeMReference = liftIO . takeMVar
+    takeMReference = liftIO . takeMVar
 instance MonadIO m => PutMRef (MVar a) m a where
-	putMReference r = liftIO . putMVar r
+    putMReference r = liftIO . putMVar r
