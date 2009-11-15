@@ -59,15 +59,6 @@ newCounter n = do
 -- motivating instance for this operation was a clock in a simple simulation
 -- application.  Given a 'TVar' 'Double' called \"clock\", a useful
 -- value \"dT\" is yielded by the expression: 'mkLapseReader' clock (-)
--- 
--- note that there's a unification ghc missed here:
--- the fundep sr -> a on NewRef and DefaultStateRef should cause a and a1 
--- to be unified, because of the 2 constraints:
---      NewRef sr1 m a
---      DefaultStateRef sr1 m1 a1
--- this isn't a \"bug\" because the type is still valid, but it seems like
--- something ghc \"ought\" to do, since a and a1 are doomed to unification
--- anyway.
 mkLapseReader
   :: (ReadRef sr m a, HasRef m, Monad m) =>
      sr -> (a -> a -> b) -> m (m b)
