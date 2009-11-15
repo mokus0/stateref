@@ -23,8 +23,8 @@ Flag useSTM
   Default:              True
 
 Flag useTMVar
-  Description:          Include instances for TMVar (TMVar not available
-                        in hugs' stm implementation).  I have been unable to
+  Description:          Include instances for TMVar (TMVar is not available
+                        in hugs' STM implementation).  I have been unable to
                         make this flag's value depend on whether or not
                         you're running hugs, so if you are, you'll just have
                         to change it manually.  It'd sure be nice if there
