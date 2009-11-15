@@ -1,7 +1,3 @@
-{-
- -      ``Data/MRef/Classes''
- -      (c) 2008 Cook, J. MR  SSD, Inc.
- -}
 {-# LANGUAGE
         MultiParamTypeClasses,
         FunctionalDependencies
@@ -13,17 +9,17 @@
 --
 --  This interface may be subject to future expansion.  Presently, rather 
 --  than providing something like 'Control.Concurrent.MVar.tryTakeMVar',
---  instances for \"'Data.StateRef.Classes.ReadRef' sr m ('Maybe' a)\" are
---  provided, giving 'Data.StateRef.Classes.readRef' the same type 
+--  instances for \"'Data.StateRef.Types.ReadRef' sr m ('Maybe' a)\" are
+--  provided, giving 'Data.StateRef.Types.readRef' the same type 
 --  tryTakeMRef would have if it existed.  There is currently nothing like
 --  'Control.Concurrent.MVar.tryPutMVar', though.  Perhaps there should be.
 --  Or, perhaps this is the sort of thing the weird (to me) signature of
 --  'Data.IORef.atomicModifyIORef' is for, and an argument for a similar
---  signature for 'Data.StateRef.Classes.modifyStateRef' or the addition of
+--  signature for 'Data.StateRef.Types.modifyStateRef' or the addition of
 --  a new atomicModifyStateRef function.
 --
 --  I would like to resolve these questions in version 0.3 of this package.
-module Data.MRef.Classes where
+module Data.MRef.Types where
 
 class Monad m => NewMRef sr m a | sr -> a where
         -- |See 'Control.Concurrent.MVar.newMVar'

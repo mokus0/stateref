@@ -24,7 +24,7 @@ module Data.MRef.Instances
 import Data.MRef.Instances.STM
 #endif
 
-import Data.MRef.Classes
+import Data.MRef.Types
 
 import Control.Concurrent.MVar
 import Control.Monad.Trans

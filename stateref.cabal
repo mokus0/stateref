@@ -1,5 +1,5 @@
 name:                   stateref
-version:                0.2.1.1
+version:                0.3
 stability:              provisional
 license:                BSD3
 license-file:           LICENSE
@@ -49,10 +49,10 @@ Library
   
   exposed-modules:      Data.Accessor
                         Data.StateRef
-                        Data.StateRef.Classes
+                        Data.StateRef.Types
                         Data.StateRef.Instances
                         Data.MRef
-                        Data.MRef.Classes
+                        Data.MRef.Types
                         Data.MRef.Instances
   other-modules:        Data.StateRef.Instances.Undecidable
   

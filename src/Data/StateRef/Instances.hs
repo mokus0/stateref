@@ -37,7 +37,7 @@ module Data.StateRef.Instances
 import Data.StateRef.Instances.STM
 #endif
 
-import Data.StateRef.Classes
+import Data.StateRef.Types
 import Data.StateRef.Instances.Undecidable
 
 import Data.IORef
@@ -53,26 +53,38 @@ import qualified Data.STRef.Lazy
 import Foreign.Storable
 import Foreign.ForeignPtr
 
+-- Ref in any monad:
+instance Monad m => ReadRef (Ref m a) m a where
+    readRef (Ref sr) = readRef sr
+instance Monad m => WriteRef (Ref m a) m a where
+    writeRef (Ref sr) = writeRef sr
+instance Monad m => ModifyRef (Ref m a) m a where
+    atomicModifyRef (Ref sr) = atomicModifyRef sr
+    modifyRef (Ref sr) = modifyRef sr
+
 -- m a in semi-arbitrary monad m
 -- (cannot have instance Monad m => ReadRef (m a) m a, because this activates
 -- functional dependencies that would overconstrain totally unrelated instances
 -- because of the possibility of the future addition of, e.g., instance Monad TMVar)
 instance Monad m => NewRef (IO a) m a where
-        newRef ro = return (return ro)
+        newReference ro = return (return ro)
 instance MonadIO m => ReadRef (IO a) m a where
         readRef = liftIO
 
 instance Monad m => NewRef (ST s a) m a where
-        newRef ro = return (return ro)
+        newReference ro = return (return ro)
 instance ReadRef (ST s a) (ST s) a where
         readRef = id
 instance MonadIO m => ReadRef (ST RealWorld a) m a where
         readRef = liftIO . stToIO
 
 -- IORef in IO-compatible monads
-instance DefaultStateRef (IORef a) IO a
+instance HasRef IO where
+    newRef x = do
+        sr <- newIORef x
+        return (Ref sr)
 instance MonadIO m => NewRef (IORef a) m a where
-        newRef = liftIO . newIORef
+        newReference = liftIO . newIORef
 instance MonadIO m => ReadRef (IORef a) m a where
         readRef = liftIO . readIORef
 instance MonadIO m => WriteRef (IORef a) m a where
@@ -82,9 +94,12 @@ instance MonadIO m => ModifyRef (IORef a) m a where
         modifyRef r = liftIO . modifyIORef r
 
 -- (STRef s) in (ST s) monad
-instance DefaultStateRef (STRef s a) (ST s) a
+instance HasRef (ST s) where
+    newRef x = do
+        sr <- newSTRef x
+        return (Ref sr)
 instance NewRef (STRef s a) (ST s) a where
-        newRef = newSTRef
+        newReference = newSTRef
 instance ReadRef (STRef s a) (ST s) a where
         readRef = readSTRef
 instance WriteRef (STRef s a) (ST s) a where
@@ -94,7 +109,7 @@ instance ModifyRef (STRef s a) (ST s) a where
 -- (STRef RealWorld) in IO monad (not MonadIO instances, because the m
 --  would overlap with (ST s) even though there's no instance MonadIO (ST a))
 instance NewRef (STRef RealWorld a) IO a where
-        newRef = stToIO . newRef
+        newReference = stToIO . newReference
 instance ReadRef (STRef RealWorld a) IO a where
         readRef = stToIO . readRef
 instance WriteRef (STRef RealWorld a) IO a where
@@ -103,9 +118,12 @@ instance ModifyRef (STRef RealWorld a) IO a where
         modifyRef r = stToIO . modifyRef r
 
 -- (STRef s) in lazy (ST s) monad
-instance DefaultStateRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a
+instance HasRef (Control.Monad.ST.Lazy.ST s) where
+    newRef x = do
+        sr <- Data.STRef.Lazy.newSTRef x
+        return (Ref sr)
 instance NewRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
-        newRef = Data.STRef.Lazy.newSTRef
+        newReference = Data.STRef.Lazy.newSTRef
 instance ReadRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
         readRef = Data.STRef.Lazy.readSTRef
 instance WriteRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
@@ -114,12 +132,12 @@ instance ModifyRef (STRef s a) (Control.Monad.ST.Lazy.ST s) a where
 
 -- MVar in IO-compatible monads (constructable but not usable as a "normal" state ref)
 instance MonadIO m => NewRef (MVar a) m (Maybe a) where
-	newRef Nothing = liftIO newEmptyMVar
-	newRef (Just x) = liftIO (newMVar x)
+	newReference Nothing = liftIO newEmptyMVar
+	newReference (Just x) = liftIO (newMVar x)
 
 -- ForeignPtrs, Ptrs, etc., in IO-compatible monads
 instance (Storable a, MonadIO m) => NewRef (ForeignPtr a) m a where
-        newRef val = liftIO $ do
+        newReference val = liftIO $ do
                 ptr <- mallocForeignPtr
                 withForeignPtr ptr (\ptr -> poke ptr val)
                 return ptr

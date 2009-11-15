@@ -32,7 +32,7 @@ module Data.StateRef.Instances.STM
         , atomically
         ) where
 
-import Data.StateRef.Classes
+import Data.StateRef.Types
 
 import Control.Monad.Trans
 
@@ -45,9 +45,12 @@ instance MonadIO m => ReadRef (STM a) m a where
         readRef = liftIO . atomically
 
 -- TVar in STM monad
-instance DefaultStateRef (TVar a) STM a
+instance HasRef STM where
+    newRef x = do
+        sr <- newTVar x
+        return (Ref sr)
 instance NewRef (TVar a) STM a where
-        newRef = newTVar
+        newReference = newTVar
 instance ReadRef (TVar a) STM a where
         readRef = readTVar
 instance WriteRef (TVar a) STM a where
@@ -56,7 +59,7 @@ instance ModifyRef (TVar a) STM a
 
 -- TVar in IO-compatible monads
 instance MonadIO m => NewRef (TVar a) m a where
-        newRef = liftIO . newTVarIO
+        newReference = liftIO . newTVarIO
 instance MonadIO m => ReadRef (TVar a) m a where
         readRef = liftIO . atomically . readRef
 instance MonadIO m => WriteRef (TVar a) m a where
@@ -67,15 +70,15 @@ instance MonadIO m => ModifyRef (TVar a) m a where
 #ifdef useTMVar
 -- TMVar in STM monad
 instance NewRef (TMVar a) STM (Maybe a) where
-	newRef Nothing = newEmptyTMVar
-	newRef (Just x) = newTMVar x
+	newReference Nothing = newEmptyTMVar
+	newReference (Just x) = newTMVar x
 instance ReadRef (TMVar a) STM (Maybe a) where
 	readRef tmv = fmap Just (readTMVar tmv) `orElse` return Nothing
 
 -- TMVar in IO-compatible monad
 instance MonadIO m => NewRef (TMVar a) m (Maybe a) where
-	newRef Nothing = liftIO newEmptyTMVarIO
-	newRef (Just x) = liftIO (newTMVarIO x)
+	newReference Nothing = liftIO newEmptyTMVarIO
+	newReference (Just x) = liftIO (newTMVarIO x)
 instance MonadIO m => ReadRef (TMVar a) m (Maybe a) where
 	readRef = liftIO . atomically . readRef
 #endif

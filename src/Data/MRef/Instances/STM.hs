@@ -23,8 +23,8 @@ module Data.MRef.Instances.STM
         , atomically
         ) where
 
-import Data.MRef.Classes
-import Data.StateRef (readRef, writeRef, newRef)
+import Data.MRef.Types
+import Data.StateRef (readRef, writeRef, newReference)
 import Data.StateRef.Instances.STM ()
 
 import Control.Concurrent.STM
@@ -59,8 +59,8 @@ instance PutMRef (TMVar a) IO a where
 instance DefaultMRef (TVar (Maybe a)) STM a
 #endif
 instance NewMRef (TVar (Maybe a)) STM a where
-        newMRef = newRef . Just
-        newEmptyMRef = newRef Nothing
+        newMRef = newReference . Just
+        newEmptyMRef = newReference Nothing
 
 instance TakeMRef (TVar (Maybe a)) STM a where
         takeMRef ref = do
@@ -79,8 +79,8 @@ instance PutMRef (TVar (Maybe a)) STM a where
 
 -- TVars containing "Maybe" values in IO monad
 instance NewMRef (TVar (Maybe a)) IO a where
-        newMRef = newRef . Just
-        newEmptyMRef = newRef Nothing
+        newMRef = newReference . Just
+        newEmptyMRef = newReference Nothing
 instance TakeMRef (TVar (Maybe a)) IO a where
         takeMRef = atomically . takeMRef
 instance PutMRef (TVar (Maybe a)) IO a where

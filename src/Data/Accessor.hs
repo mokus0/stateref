@@ -9,7 +9,7 @@
 
 module Data.Accessor where
 
-import Data.StateRef.Classes
+import Data.StateRef.Types
 
 newtype Getter m a = Getter (m a)
 newtype Setter m a = Setter (a -> m ())

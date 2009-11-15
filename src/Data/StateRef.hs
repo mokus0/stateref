@@ -12,39 +12,39 @@
 -- type classes and functional dependencies.
 module Data.StateRef
         ( module Data.StateRef
-        , module Data.StateRef.Classes
+        , module Data.StateRef.Types
         , module Data.StateRef.Instances
         , module Data.Accessor
         ) where
 
-import Data.StateRef.Classes
+import Data.StateRef.Types
 import Data.StateRef.Instances
 import Data.Accessor
 
 -- |Create a reference and constrain its type to be the default reference type
 -- for the monad in which it is being created.  See 'newRef'.
-newDefaultRef :: (DefaultStateRef sr m a, NewRef sr m a) => a -> m sr
+newDefaultRef :: HasRef m => a -> m (Ref m a)
 newDefaultRef = newRef
 
 -- |Read a reference and constrain its type to be the default reference type
 -- for the monad in which it is being read.  See 'readRef'.
-readDefaultRef :: (DefaultStateRef sr m a, ReadRef sr m a) => sr -> m a
+readDefaultRef :: HasRef m => Ref m a -> m a
 readDefaultRef = readRef
 
 -- |Write a reference and constrain its type to be the default reference type
 -- for the monad in which it is being written.  See 'writeRef'
-writeDefaultRef :: (DefaultStateRef sr m a, WriteRef sr m a) => sr -> a -> m ()
+writeDefaultRef :: HasRef m => Ref m a -> a -> m ()
 writeDefaultRef = writeRef
 
 -- |Modify a reference and constrain its type to be the default reference type
 -- for the monad in which it is being modified.  See 'modifyRef'.
-atomicModifyDefaultRef :: (DefaultStateRef sr m a, ModifyRef sr m a) => sr -> (a -> (a,b)) -> m b
+atomicModifyDefaultRef :: HasRef m => Ref m a -> (a -> (a,b)) -> m b
 atomicModifyDefaultRef = atomicModifyRef
 
 
 -- |Modify a reference and constrain its type to be the default reference type
 -- for the monad in which it is being modified.  See 'modifyRef'.
-modifyDefaultRef :: (DefaultStateRef sr m a, ModifyRef sr m a) => sr -> (a -> a) -> m ()
+modifyDefaultRef :: HasRef m => Ref m a -> (a -> a) -> m ()
 modifyDefaultRef = modifyRef
 
 
@@ -60,17 +60,12 @@ readsRef r f = do
 
 -- |Construct a counter - a monadic value which, each time it is
 -- evaluated, returns the 'succ' of the previous value returned.
-newCounter :: (DefaultStateRef sr m1 a,
-	       ModifyRef sr m1 a,
-               NewRef sr m a,
-               Enum a) =>
-              a -> m (m1 a)
 newCounter n = do
         c <- newRef n
         return $ do
-		x <- readDefaultRef c
-		writeDefaultRef c (succ x)
-                return x
+            x <- readDefaultRef c
+            writeDefaultRef c (succ x)
+            return x
 
 -- |Create a \"lapse reader\" (suggestions for better terminology are more 
 -- than welcome), a sort of a time-lapse of the variable.  The first 
@@ -86,13 +81,6 @@ newCounter n = do
 -- this isn't a \"bug\" because the type is still valid, but it seems like
 -- something ghc \"ought\" to do, since a and a1 are doomed to unification
 -- anyway.
-mkLapseReader :: (ReadRef sr m a,
-                  ReadRef sr m1 a,
-                  NewRef sr1 m a,
-                  DefaultStateRef sr1 m1 a1,
-                  ReadRef sr1 m1 a1,
-                  WriteRef sr1 m1 a) =>
-                 sr -> (a -> a1 -> b) -> m (m1 b)
 mkLapseReader var f = do
         startVal <- readRef var
         prevRef <- newRef startVal

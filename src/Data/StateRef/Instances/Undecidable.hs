@@ -10,7 +10,7 @@
 
 module Data.StateRef.Instances.Undecidable where
 
-import Data.StateRef.Classes
+import Data.StateRef.Types
 
 -- |Wrap a state reference that supports reading and writing, and add a
 -- potentially thread-unsafe 'ModifyRef' instance.

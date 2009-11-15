@@ -1,17 +1,13 @@
-{-
- -      ``Data/StateRef/Classes''
- -      (c) 2008 Cook, J. MR  SSD, Inc.
- -}
 {-# LANGUAGE 
     MultiParamTypeClasses,
-    FunctionalDependencies
+    FunctionalDependencies,
+    GADTs
   #-}
 
-module Data.StateRef.Classes where
+module Data.StateRef.Types where
 
-class Monad m => NewRef sr m a | sr -> a where
-        -- |Construct a new mutable reference containing the provided value.
-        newRef :: a -> m sr
+data Ref m a where
+    Ref :: ModifyRef sr m a => sr -> Ref m a
 
 class Monad m => WriteRef sr m a | sr -> a where
         -- |Replace the existing value of the given reference with the provided value.
@@ -49,28 +45,10 @@ class (Monad m, ReadRef sr m a, WriteRef sr m a) => ModifyRef sr m a | sr -> a w
                 writeRef ref x'
                 return ()
 
--- |The 'DefaultStateRef' and 'Data.MRef.Classes.DefaultMRef' are used to 
--- internally constrain types that do not escape an expression, so that the 
--- compiler may choose an instance for the reference type (which it otherwise
--- would not, and maybe not even tell you until you tried to use your
--- function).  For an example, see the source for 'Data.StateRef.newCounter'.
--- See also 'Data.MRef.Classes.DefaultMRef'.
--- 
--- The sole purpose for these classes' existence is as a carrier for an
--- altered set of functional dependencies, which constrain the reference
--- type to be uniquely determined by the monad and the contained type.
-class Monad m => DefaultStateRef sr m a | sr -> a, m a -> sr
+class Monad m => NewRef sr m a | sr -> a where
+    -- |Construct a new mutable reference containing the provided value.
+    newReference :: a -> m sr
 
---
--- in the absence of type families, it'd be nice to be able to say 
--- something like:
---
--- type StateRef m a = 
---         ( DefaultStateRef sr m a
---         , ReadRef sr m a
---         , WriteRef sr m a
---         ) => sr
---
--- this would ease the transition to type families later, assuming
--- they catch on.
---
+class Monad m => HasRef m where
+    -- |Construct a new mutable reference containing the provided value.
+    newRef :: a -> m (Ref m a)
