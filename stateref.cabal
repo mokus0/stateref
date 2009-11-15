@@ -1,8 +1,7 @@
 name:                   stateref
 version:                0.3
 stability:              provisional
-license:                BSD3
-license-file:           LICENSE
+license:                PublicDomain
 
 cabal-version:          >= 1.2
 build-type:             Simple
