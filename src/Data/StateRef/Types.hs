@@ -11,7 +11,7 @@ module Data.StateRef.Types where
 -- The full complexity is still there, though, so FFI types or other reference-like
 -- things can still be made into 'Ref's.
 data Ref m a where
-    Ref :: ModifyRef sr m a => sr -> Ref m a
+    Ref :: ModifyRef sr m a => !sr -> Ref m a
 
 class WriteRef sr m a | sr -> a where
     -- |Replace the existing value of the given reference with the provided value.

@@ -23,7 +23,7 @@
 module Data.MRef.Types where
 
 data MRef m a where
-    MRef :: (TakeMRef sr m a, PutMRef sr m a) => sr -> MRef m a
+    MRef :: (TakeMRef sr m a, PutMRef sr m a) => !sr -> MRef m a
 
 class HasMRef m where
     newMRef :: a -> m (MRef m a)
