@@ -14,7 +14,17 @@ category:               Data
 synopsis:               Abstraction for things that work like IORef.
 description:            A collection of type-classes generalizing the
                         read\/write\/modify operations for stateful variables
-                        provided by things like IORef, TVar, &c.
+                        provided by things like IORef, TVar, &c.  
+                        
+                        Note that The interface has changed a bit from the
+                        0.2.* version.  \"*Ref\" functions are now called 
+                        \"*Reference\" and new \"*Ref\" function exist with 
+                        simpler signatures.
+                        
+                        The new 'Ref' existential type provides a convenient
+                        monad-indexed reference type, and the HasRef class
+                        indicates monads for which there is a default
+                        reference type for every referent.
 
 tested-with:            GHC
 
