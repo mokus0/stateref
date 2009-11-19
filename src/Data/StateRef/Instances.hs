@@ -50,6 +50,8 @@ import Foreign.Storable
 import Foreign.ForeignPtr
 
 -- @Ref m@ in @m@:
+instance HasRef m => NewRef (Ref m a) m a where
+    newReference = newRef
 instance ReadRef (Ref m a) m a where
     readReference (Ref sr) = readReference sr
 instance WriteRef (Ref m a) m a where
