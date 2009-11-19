@@ -76,6 +76,6 @@ Library
       if impl(hugs)
         buildable:      False
   
-  build-depends:        base, mtl
+  build-depends:        base >= 3 && <5, mtl
   if flag(useSTM)
     build-depends:      stm
