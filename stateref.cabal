@@ -3,12 +3,12 @@ version:                0.3
 stability:              provisional
 license:                PublicDomain
 
-cabal-version:          >= 1.2
+cabal-version:          >= 1.6
 build-type:             Simple
 
 author:                 James Cook <mokus@deepbondi.net>
 maintainer:             James Cook <mokus@deepbondi.net>
-homepage:               http://code.haskell.org/~mokus/stateref/
+homepage:               https://github.com/mokus0/stateref/
 
 category:               Data
 synopsis:               Abstraction for things that work like IORef.
@@ -27,6 +27,10 @@ description:            A collection of type-classes generalizing the
                         reference type for every referent.
 
 tested-with:            GHC
+
+source-repository head
+  type:                 git
+  location:             https://github.com/mokus0/stateref.git
 
 Flag useSTM
   Description:          Include instances for STM types
